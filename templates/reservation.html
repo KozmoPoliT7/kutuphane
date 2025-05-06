@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Rezervasyon Yap ({{ username }})</h1>
+    <p><a href="{{ url_for('subscriptions', username=username) }}" class="btn btn-secondary">Abonelikleri Yönet</a></p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category == 'error' and 'danger' or category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if empty_seats %}
+        <h3>Boş Koltuklar</h3>
+        <form method="POST" action="{{ url_for('reservation', username=username) }}">
+            <ul class="list-group">
+                {% for seat in empty_seats %}
+                    <li class="list-group-item">
+                        <input type="radio" name="seat" value="{{ seat }}" id="seat{{ loop.index }}" required>
+                        <label for="seat{{ loop.index }}">Koltuk No: {{ seat }}</label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <input type="hidden" name="date" value="{{ date }}">
+            <input type="hidden" name="kat" value="{{ kat }}">
+            <input type="hidden" name="seans" value="{{ seans }}">
+            <button type="submit" class="btn btn-primary mt-3">Rezervasyon Yap</button>
+        </form>
+    {% else %}
+        <div id="status" class="alert alert-info">
+            {% if search_id %}
+                Boş koltuk bulunamadı, otomatik arama moduna geçiliyor... <span class="loader"></span>
+            {% else %}
+                Lütfen tarih, kat ve seans seçin.
+            {% endif %}
+        </div>
+        {% if search_id %}
+            <button id="cancel-search" class="btn btn-danger mt-3" title="Otomatik taramayı durdurur">Taramayı İptal Et</button>
+        {% else %}
+            <form method="POST" action="{{ url_for('reservation', username=username) }}">
+                <div class="mb-3">
+                    <label for="date" class="form-label">Tarih</label>
+                    <input type="date" class="form-control" id="date" name="date" required value="{{ date or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="kat" class="form-label">Kat</label>
+                    <select class="form-select" id="kat" name="kat" required>
+                        <option value="82" {% if kat == '82' %}selected{% endif %}>Zemin Kat</option>
+                        <option value="80" {% if kat == '80' %}selected{% endif %}>1. Kat</option>
+                        <option value="81" {% if kat == '81' %}selected{% endif %}>Bodrum Kat</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="seans" class="form-label">Seans</label>
+                    <select class="form-select" id="seans" name="seans" required>
+                        <option value="1" {% if seans == '1' %}selected{% endif %}>Sabah (08:30 - 13:50)</option>
+                        <option value="2" {% if seans == '2' %}selected{% endif %}>Öğle (14:00 - 19:50)</option>
+                        <option value="3" {% if seans == '3' %}selected{% endif %}>Akşam (20:00 - 23:50)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Boş Koltukları Göster</button>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #cancel-search {
+            font-weight: bold;
+        }
+    </style>
+
+    {% if search_id %}
+    <script>
+        let isCheckingStatus = true;
+
+        async function checkSearchStatus() {
+            if (!isCheckingStatus) return;
+
+            try {
+                const response = await fetch('/check_status/{{ search_id }}');
+                const data = await response.json();
+
+                const statusDiv = document.getElementById('status');
+                if (data.status === 'running') {
+                    statusDiv.innerHTML = `${data.message} <span class="loader"></span>`;
+                    statusDiv.className = 'alert alert-info';
+                    setTimeout(checkSearchStatus, 1000);
+                } else if (data.status === 'success') {
+                    statusDiv.innerHTML = data.message;
+                    statusDiv.className = 'alert alert-success';
+                    document.getElementById('cancel-search').style.display = 'none';
+                    // 2 saniye sonra ana menüye yönlendir
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("index") }}';
+                    }, 2000);
+                } else if (data.status === 'error' || data.status === 'cancelled') {
+                    statusDiv.innerHTML = data.message;
+                    statusDiv.className = 'alert alert-danger';
+                    document.getElementById('cancel-search').style.display = 'none';
+                    // 2 saniye sonra ana menüye yönlendir
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("index") }}';
+                    }, 2000);
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `Hata oluştu: ${error.message}`;
+                document.getElementById('status').className = 'alert alert-danger';
+                document.getElementById('cancel-search').style.display = 'none';
+                // 2 saniye sonra ana menüye yönlendir
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("index") }}';
+                }, 2000);
+            }
+        }
+
+        async function cancelSearch() {
+            if (!confirm('Otomatik taramayı iptal etmek istediğinize emin misiniz?')) return;
+
+            isCheckingStatus = false;
+            try {
+                const response = await fetch('/cancel_search/{{ search_id }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                const statusDiv = document.getElementById('status');
+                if (data.success) {
+                    statusDiv.innerHTML = data.message;
+                    statusDiv.className = 'alert alert-danger';
+                    document.getElementById('cancel-search').style.display = 'none';
+                    // 2 saniye sonra ana menüye yönlendir
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("index") }}';
+                    }, 2000);
+                } else {
+                    statusDiv.innerHTML = `İptal işlemi başarısız: ${data.message}`;
+                    statusDiv.className = 'alert alert-danger';
+                    // Hata durumunda da yönlendir
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("index") }}';
+                    }, 2000);
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `İptal işlemi sırasında hata: ${error.message}`;
+                document.getElementById('status').className = 'alert alert-danger';
+                // Hata durumunda da yönlendir
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("index") }}';
+                }, 2000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSearchStatus();
+            document.getElementById('cancel-search').addEventListener('click', cancelSearch);
+        });
+    </script>
+    {% endif %}
+{% endblock %}

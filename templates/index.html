@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Rezervasyon Sistemine Hoş Geldiniz</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Yeni Giriş</h5>
+                    <p class="card-text">Yeni bir kullanıcıyla giriş yap.</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">Giriş Yap</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Kayıtlı Profil</h5>
+                    <p class="card-text">Kayıtlı bir profili kullanarak rezervasyon yap.</p>
+                    <a href="{{ url_for('profiles') }}" class="btn btn-primary">Profil Seç</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Abonelik Yönetimi</h5>
+                    <p class="card-text">Abonelik oluştur, düzenle veya iptal et.</p>
+                    <a href="{{ url_for('profiles', action='subscriptions') }}" class="btn btn-primary">Abonelikleri Yönet</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

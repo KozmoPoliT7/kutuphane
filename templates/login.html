@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Giriş Yap</h1>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="username" class="form-label">Kullanıcı Adı</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Şifre</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Adınız (opsiyonel)</label>
+            <input type="text" class="form-control" id="name" name="name">
+        </div>
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="save_profile" name="save_profile">
+            <label class="form-check-label" for="save_profile">Profili kaydet</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+    </form>
+{% endblock %}

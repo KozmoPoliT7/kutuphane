@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Kayıtlı Profiller</h1>
+    <form method="POST" action="{{ url_for('profiles') }}">
+        <div class="mb-3">
+            <label for="profile" class="form-label">Profil Seç</label>
+            <select class="form-select" id="profile" name="profile" required>
+                {% for profile in profiles %}
+                    <option value="{{ loop.index }}">{{ profile.name or profile.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Seç</button>
+    </form>
+{% endblock %}

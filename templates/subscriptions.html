@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Abonelik Yönetimi ({{ profile.name or profile.username }})</h1>
+    {% if subscription_data.abonelikler %}
+        <h3>Aktif Abonelikler</h3>
+        <ul class="list-group mb-3">
+            {% for abonelik in subscription_data.abonelikler %}
+                {% if abonelik.aktif %}
+                    <li class="list-group-item">
+                        Kat: {{ abonelik.kat }}, Seans: {{ abonelik.seans }}, Koltuk: {{ abonelik.koltuk }}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-warning">Aktif abonelik bulunamıyor.</p>
+    {% endif %}
+
+    <!-- Yeni Abonelik Formu -->
+    <h3>Yeni Abonelik Oluştur</h3>
+    <form method="POST" action="{{ url_for('subscriptions', username=profile.username) }}" class="mb-3">
+        <input type="hidden" name="action" value="create">
+        <div class="mb-3">
+            <label for="kat" class="form-label">Kat</label>
+            <select class="form-select" id="kat" name="kat" required>
+                <option value="82">Zemin Kat</option>
+                <option value="80">1. Kat</option>
+                <option value="81">Bodrum Kat</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="seans" class="form-label">Seans</label>
+            <select class="form-select" id="seans" name="seans" required>
+                <option value="1">Sabah (08:30 - 13:50)</option>
+                <option value="2">Öğle (14:00 - 19:50)</option>
+                <option value="3">Akşam (20:00 - 23:50)</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="koltuk" class="form-label">Koltuk</label>
+            <select class="form-select" id="koltuk" name="koltuk" required>
+                {% for koltuk in koltuklar %}
+                    <option value="{{ loop.index }}">{{ koltuk.koltuk }} {% if koltuk.dolu %}[DOLU]{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Abonelik Oluştur</button>
+    </form>
+
+    <!-- Abonelik Düzenleme Formu -->
+    <h3>Abonelik Düzenle</h3>
+    <form method="POST" action="{{ url_for('subscriptions', username=profile.username) }}" class="mb-3">
+        <input type="hidden" name="action" value="edit">
+        <div class="mb-3">
+            <label for="abonelik_index" class="form-label">Düzenlenecek Abonelik</label>
+            <select class="form-select" id="abonelik_index" name="abonelik_index" required>
+                {% for abonelik in subscription_data.abonelikler %}
+                    {% if abonelik.aktif %}
+                        <option value="{{ loop.index }}">Kat: {{ abonelik.kat }}, Seans: {{ abonelik.seans }}, Koltuk: {{ abonelik.koltuk }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="kat" class="form-label">Yeni Kat</label>
+            <select class="form-select" id="kat" name="kat" required>
+                <option value="82">Zemin Kat</option>
+                <option value="80">1. Kat</option>
+                <option value="81">Bodrum Kat</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="seans" class="form-label">Yeni Seans</label>
+            <select class="form-select" id="seans" name="seans" required>
+                <option value="1">Sabah (08:30 - 13:50)</option>
+                <option value="2">Öğle (14:00 - 19:50)</option>
+                <option value="3">Akşam (20:00 - 23:50)</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="koltuk" class="form-label">Yeni Koltuk</label>
+            <select class="form-select" id="koltuk" name="koltuk" required>
+                {% for koltuk in koltuklar %}
+                    <option value="{{ loop.index }}">{{ koltuk.koltuk }} {% if koltuk.dolu %}[DOLU]{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-warning">Aboneliği Düzenle</button>
+    </form>
+
+    <!-- Abonelik İptal Formu -->
+    <h3>Abonelik İptal Et</h3>
+    <form method="POST" action="{{ url_for('subscriptions', username=profile.username) }}">
+        <input type="hidden" name="action" value="cancel">
+        <div class="mb-3">
+            <label for="abonelik_index" class="form-label">İptal Edilecek Abonelik</label>
+            <select class="form-select" id="abonelik_index" name="abonelik_index" required>
+                {% for abonelik in subscription_data.abonelikler %}
+                    {% if abonelik.aktif %}
+                        <option value="{{ loop.index }}">Kat: {{ abonelik.kat }}, Seans: {{ abonelik.seans }}, Koltuk: {{ abonelik.koltuk }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-danger">İptal Et</button>
+    </form>
+{% endblock %}
